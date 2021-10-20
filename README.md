@@ -1,5 +1,8 @@
 # big-stonks
 
+## Installation
+pip3 install yfinance
+
 Use yfinance
 
 Look into how to use that data
