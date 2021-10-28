@@ -4,7 +4,7 @@ class TickerHistory:
 
     def __init__(self, symbol, interval, range):
         self.prices = yf.download(tickers=symbol, period=range, interval=interval)
-    
+        print('done downloading!')
     def get_mva(self, range):
         # TODO: implement
         print('asd')
