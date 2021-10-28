@@ -17,5 +17,4 @@ class Backtest:
         profit = Algorithm.get_profit(orders)
         return profit
 
-    def __main__():
-        print(Backtest.test1())
+Backtest.test1()
