@@ -5,5 +5,7 @@ class Backtest:
         :return: profit
         """
 
+        return None
+
     def __main__():
-        print(test1())
+        print(Backtest.test1())

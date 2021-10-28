@@ -19,7 +19,6 @@ class Algorithm:
             quantity = order[1]
             price = order[2]
 
-
             if order_type == 'B':
                 res -= quantity * price
             elif order_type == 'S':
