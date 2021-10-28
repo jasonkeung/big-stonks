@@ -8,7 +8,6 @@ class NaiveAlgorithm(Algorithm):
         Ex: [('B', 2, '43.1'), ('B', 1, 45.21), ('S', 2, 51.54)]
 
         """
-        for row in self.prices:
-            print(row)
+        print(self.history.prices)
         
-        return [('B', 2, '43.1'), ('B', 1, 45.21), ('S', 2, 51.54)]
+        return [('B', 2, 43.1), ('B', 1, 45.21), ('S', 2, 51.54)]

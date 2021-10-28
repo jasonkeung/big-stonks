@@ -17,4 +17,8 @@ class Backtest:
         profit = Algorithm.get_profit(orders)
         return profit
 
+<<<<<<< HEAD
 print(Backtest.test1())
+=======
+Backtest.test1()
+>>>>>>> 4e51b26714fca24f129775a765643c5b6569ab0a
