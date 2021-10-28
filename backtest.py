@@ -12,6 +12,7 @@ class Backtest:
         :return: profit
         """
         history = TickerHistory('GOOG', '1d', '30d')
+        history.get_ma()
         alg = NaiveAlgorithm(history, 10000)
         orders = alg.run()
         profit = Algorithm.get_profit(orders)

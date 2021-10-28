@@ -2,9 +2,13 @@ import yfinance as yf
 
 class TickerHistory:
 
-    def __init__(self, symbol, interval, range):
-        self.prices = yf.download(tickers=symbol, period=range, interval=interval)
+    def __init__(self, symbol, interval, period):
+        self.data = yf.Ticker(ticker = symbol)
+        self.prices = self.data.history(interval = interval, period = period)
         print('done downloading!')
-    def get_mva(self, range):
+    def get_ma(self, moving_ave_range = 5):
         # TODO: implement
-        print('asd')
+        ave = self.prices[['Close']].rolling(window = moving_ave_range).mean()
+        self.prices['Moving Average'] = ave['Close']
+        print("get MA")
+        
