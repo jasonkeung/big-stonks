@@ -3,16 +3,16 @@ class Algorithm:
     def __init__(self, ticker_history, budget):
         self.history = ticker_history
         self.balance = budget
+        self.num_holding = 0
         return None
 
-    def get_profit_gains(start_bal, orders):
+    def get_profit(orders):
         """
         :param start_bal: starting balance
         :param orders: list of buy/sell orders
         Ex: [('B', 2, 43.1), ('B', 1, 45.21), ('S', 2, 51.54)]
 
-        :return: total dollar profit
-        total dollar profit = final balance - starting balance (only stocks sold)
+        :return: total dollar profit from selling (does not include starting balance)
         """
         profit = 0
 
