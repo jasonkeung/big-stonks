@@ -18,8 +18,13 @@ class Order:
         self.order_time = order_time
 
     def __repr__(self):
-        return f'\n{self.ticker_symbol}, {self.order_type}, {self.quantity}, {self.price}, {self.order_time}'
-    
+        if self.order_type == 'B':
+            return f'{self.ticker_symbol}: bought {self.quantity} shares @ ${round(self.price, 3)} on {self.order_time}'
+        elif self.order_type == 'S':
+            return f'{self.ticker_symbol}: sold {self.quantity} shares @ ${round(self.price, 3)} on {self.order_time}'
+
     def __str__(self):
-        return f'\n{self.ticker_symbol}, {self.order_type}, {self.quantity}, {self.price}, {self.order_time}'
-    
+        if self.order_type == 'B':
+            return f'{self.ticker_symbol}: bought {self.quantity} shares @ ${round(self.price, 3)} on {self.order_time}'
+        elif self.order_type == 'S':
+            return f'{self.ticker_symbol}: sold {self.quantity} shares @ ${round(self.price, 3)} on {self.order_time}'
