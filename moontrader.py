@@ -1,4 +1,6 @@
 from datetime import datetime
+import math
+import pandas as pd
 
 from trader import Trader
 from order import Order
@@ -16,27 +18,33 @@ class MoonTrader(Trader):
 
         # convert new and full moons to datetime objects
         for i in range(len(new_moons)):
-            new_moons[i] = datetime.strptime('2021-' + new_moons[i], '%Y-%m-%d')
+            new_moons[i] = datetime.strptime('2021-' + new_moons[i], '%Y-%m-%d').date()
 
         for i in range(len(full_moons)):
-            full_moons[i] = datetime.strptime('2021-' + full_moons[i], '%Y-%m-%d')
+            full_moons[i] = datetime.strptime('2021-' + full_moons[i], '%Y-%m-%d').date()
 
-        for sym, ticker in self.tickers.items():
+        all_moons = []
+        all_moons.extend(new_moons)
+        all_moons.extend(full_moons)
+        all_moons.sort()
+
+        for order_time in all_moons:
             # buy on new moon, sell on full moon
-            for order_time, order_price in ticker.prices.iterrows():
-                curr_price = order_price['Close'] # assume we buy/sell on close
+            for sym, ticker in self.tickers.items():
+                if pd.to_datetime(order_time) in ticker.prices.index:
+                    curr_price = ticker.prices.loc[pd.to_datetime(order_time)]['Close'] # assume we buy/sell on close
 
-                if order_time in new_moons:
-                    # use max half of our balance to buy this stock
-                    num_to_buy = (self.balance / 2) / curr_price
+                    if order_time in new_moons:
+                        # use max half of our balance to buy this stock
+                        num_to_buy = math.floor((self.balance / 2) / curr_price)
 
-                    self.orders.append(Order(sym, 'B', num_to_buy, curr_price, order_time))
-                    self.balance -= num_to_buy * curr_price
-                    self.portfolio[sym] += num_to_buy
-                elif order_time in full_moons:
-                    # sell all shares we own of this stock
-                    num_to_sell = self.portfolio[sym]
+                        self.orders.append(Order(sym, 'B', num_to_buy, curr_price, order_time))
+                        self.balance -= num_to_buy * curr_price
+                        self.portfolio[sym] += num_to_buy
+                    elif order_time in full_moons:
+                        # sell half the shares we own of this stock
+                        num_to_sell = self.portfolio[sym] // 2
 
-                    self.orders.append(Order(sym, 'S', num_to_sell, curr_price, order_time)) 
-                    self.balance += num_to_sell * curr_price
-                    self.portfolio[sym] -= num_to_sell
+                        self.orders.append(Order(sym, 'S', num_to_sell, curr_price, order_time)) 
+                        self.balance += num_to_sell * curr_price
+                        self.portfolio[sym] -= num_to_sell
