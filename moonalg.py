@@ -6,7 +6,7 @@ class MoonAlgorithm(Algorithm):
     def run(self):
         """
         :return: list of buy/sell orders
-        Ex: [('B', 2, 43.1), ('B', 1, 45.21), ('S', 3, 51.54)]
+        Ex: [{'order_type': B', 'num_shares': 2, 'price': 43.1}, {'order_type': B', 'num_shares': 1, 'price': 45.86}, {'order_type': B', 'num_shares': 2, 'price': 51.25}]
 
         """
         res_orders = []
@@ -25,7 +25,8 @@ class MoonAlgorithm(Algorithm):
             curr_price = row['Close'] # assume we buy/sell on close
 
             if index in new_moons:
-                num_to_buy = (self.balance / 2) / curr_price # use max half of our balance to buy stocks
+                # use max half of our balance to buy stocks
+                num_to_buy = (self.balance / 2) / curr_price 
 
                 res_orders.append(('B', num_to_buy, curr_price))
                 self.balance -= num_to_buy * curr_price
