@@ -4,7 +4,7 @@ class Algorithm:
         self.history = ticker_history
         self.balance = budget
         self.num_holding = 0
-        return None
+        
 
     def get_profit(orders):
         """
@@ -29,3 +29,5 @@ class Algorithm:
                 raise Exception(f'Invalid order type: {order}')
             
         return profit
+    
+
