@@ -1,40 +1,24 @@
-from algorithm import Algorithm
-from moonalg import MoonAlgorithm
-from naivealg import NaiveAlgorithm
-from tickerhistory import TickerHistory
-
-
-from naivealg import NaiveAlgorithm
+from moontrader import MoonTrader
+from moontrader import MoonTrader
+from ticker import Ticker
 
 class Backtest:
 
-    def test1():
+    def testMoonAlg():
         """
-        :return: profit
+        :return: profit of MoonTrader
         """
-        history = TickerHistory('GOOG', '1d', 'ytd')
-        alg = MoonAlgorithm(history, 10000)
-        orders = alg.run()
-        print('GOOGLE ORDERS')
-        print(orders)
-        profit = Algorithm.get_profit(orders)
-        print(f'GOOGLE PROFIT: {profit}')
+        ticker_goog = Ticker('GOOG', '1d', 'ytd')
+        ticker_ge = Ticker('GE', '1d', 'ytd')
+        ticker_amc = Ticker('AMC', '1d', 'ytd')
+        ticker_tsla = Ticker('TSLA', '1d', 'ytd')
+        moontrader = MoonTrader({'GOOG': ticker_goog, 'GE': ticker_ge, 'AMC': ticker_amc, 'TSLA': ticker_tsla}, 10000)
+        
+        moontrader.run()
 
-        history = TickerHistory('GE', '1d', 'ytd')
-        alg = MoonAlgorithm(history, 10000)
-        orders = alg.run()
-        print('GE ORDERS')
-        print(orders)
-        profit = Algorithm.get_profit(orders)
-        print(f'GE PROFIT: {profit}')
-
-        history = TickerHistory('SPY', '1d', 'ytd')
-        alg = MoonAlgorithm(history, 10000)
-        orders = alg.run()
-        print('S&P 500 ORDERS')
-        print(orders)
-        profit = Algorithm.get_profit(orders)
-        print(f'S&P 500 PROFIT: {profit}')
+        print(f'Balance: {moontrader.balance}')
+        print(f'Orders Made: {moontrader.orders}')
+        print(f'Alpha: {moontrader.get_alpha()}')
         
 
-Backtest.test1()
+Backtest.testMoonAlg()
