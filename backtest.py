@@ -1,32 +1,22 @@
-from datetime import datetime
+import unittest
 
-from moontrader import MoonTrader
 from moontrader import MoonTrader
 from claudeatrader import ClaudeaTrader
 from jasontrader import JasonTrader
 from ticker import Ticker
 
-class Backtest:
-
-    def testMoonTrader():
-        ticker_goog = Ticker('GE', '1d', 'ytd')
-        ticker_amd = Ticker('AMD', '1d', 'ytd')
-
-        moontrader = MoonTrader([ticker_goog, ticker_amd], 10000)
-        moontrader.run()
-
-        moontrader.print_ending_info()
+class Backtest(unittest.TestCase):
     
-    def testJasonTrader():
-        ticker_goog = Ticker('GE', '1d', 'ytd')
+    def testJasonTrader(self):
+        ticker_ge = Ticker('GE', '1d', 'ytd')
         ticker_amd = Ticker('AMD', '1d', 'ytd')
 
-        jasontrader = JasonTrader([ticker_goog, ticker_amd], 10000)
+        jasontrader = JasonTrader([ticker_ge, ticker_amd], 10000)
         jasontrader.run()
 
         jasontrader.print_ending_info()
 
-    def testClaudeaTrader():
+    def testClaudeaTrader(self):
         ticker_msft = Ticker('MSFT', '1d', '1y')
 
         claudeatrader = ClaudeaTrader([ticker_msft], 10000)
@@ -34,8 +24,6 @@ class Backtest:
 
         claudeatrader.print_ending_info()
         
-
-Backtest.testMoonTrader()
-Backtest.testJasonTrader()
-Backtest.testClaudeaTrader()
+if __name__ == '__main__':
+    unittest.main()
 
