@@ -40,12 +40,11 @@ class Trader:
             last_price = ticker.prices.iloc[-1]['Close']
             portfolio_val += quantity * last_price
         
-        trader_return = ((self.balance + portfolio_val) / self.starting_bal) - 1
+        trader_return = (((self.balance + portfolio_val) / self.starting_bal) - 1) * 100
 
-        arbitrary_ticker = self.tickers[list(self.tickers.keys())[0]] # get a random ticker from self.tickers to get its interval/period
-        sp500 = Ticker('SPY', arbitrary_ticker.interval, arbitrary_ticker.period)
-        sp500_return = (sp500.prices.iloc[-1]['Close'] / sp500.prices.iloc[0]['Close']) - 1 # percentage return of entire range of SPY/S&P 500
-        return (trader_return - sp500_return) * 100
+        sp500_return = self.get_sp500_return()
+
+        return trader_return - sp500_return
 
     def get_sp500_return(self):
         """
@@ -91,6 +90,7 @@ class Trader:
     def get_portfolio_val(self, time):
         """
         Returns the total value of self.portfolio at time
+        If time is not in the ticker prices dataframe (like if time is a weekend), uses the last known price
 
         :param time: datetime date at which to evaluate the portfolio at
 
@@ -108,6 +108,7 @@ class Trader:
         """
         Prints relevant information for after a Trader has run.
         """
+        print(f'{type(self).__name__} Results:')
         print('Orders Made: ')
         for order in self.orders:
             print('\t' + str(order))
@@ -121,6 +122,7 @@ class Trader:
         print('Baseline hold performances:')
         for sym, ticker in self.tickers.items():
             print(f'\t{sym}: {round(self.get_ticker_hold_return(ticker), 3)}%')
+        print('------------------------------------------------')
     
     def calc_percent_change_str(start, end):
         return str(round(((end / start) - 1) * 100, 3)) + '%'
