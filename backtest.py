@@ -27,7 +27,7 @@ class Backtest:
         jasontrader.print_ending_info()
 
     def testClaudeaTrader():
-        ticker_msft = Ticker('MSFT', '1d', 'ytd')
+        ticker_msft = Ticker('MSFT', '1d', '1y')
 
         claudeatrader = ClaudeaTrader([ticker_msft], 10000)
         claudeatrader.run()
