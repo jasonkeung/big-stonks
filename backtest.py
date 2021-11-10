@@ -2,6 +2,8 @@ from datetime import datetime
 
 from moontrader import MoonTrader
 from moontrader import MoonTrader
+from claudeatrader import ClaudeaTrader
+from jasontrader import JasonTrader
 from ticker import Ticker
 
 class Backtest:
@@ -23,7 +25,17 @@ class Backtest:
         jasontrader.run()
 
         jasontrader.print_ending_info()
+
+    def testClaudeaTrader():
+        ticker_msft = Ticker('MSFT', '1d', 'ytd')
+
+        claudeatrader = ClaudeaTrader([ticker_msft], 10000)
+        claudeatrader.run()
+
+        claudeatrader.print_ending_info()
         
 
 Backtest.testMoonTrader()
 Backtest.testJasonTrader()
+Backtest.testClaudeaTrader()
+
