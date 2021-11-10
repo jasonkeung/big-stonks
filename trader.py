@@ -108,7 +108,7 @@ class Trader:
         """
         Prints relevant information for after a Trader has run.
         """
-        print(f'{type(self).__name__} Results:')
+        print(f'\n{type(self).__name__} Results:')
         print('Orders Made: ')
         for order in self.orders:
             print('\t' + str(order))
