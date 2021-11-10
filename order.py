@@ -17,12 +17,6 @@ class Order:
         self.price = price
         self.order_time = order_time
 
-    def __repr__(self):
-        if self.order_type == 'B':
-            return f'{self.ticker_symbol}: bought {self.quantity} shares @ ${round(self.price, 3)} on {self.order_time}'
-        elif self.order_type == 'S':
-            return f'{self.ticker_symbol}: sold {self.quantity} shares @ ${round(self.price, 3)} on {self.order_time}'
-
     def __str__(self):
         if self.order_type == 'B':
             return f'{self.ticker_symbol}: bought {self.quantity} shares @ ${round(self.price, 3)} on {self.order_time}'
