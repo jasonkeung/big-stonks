@@ -37,14 +37,10 @@ class MoonTrader(Trader):
                     if order_time in new_moons:
                         # use max half of our balance to buy this stock
                         num_to_buy = math.floor((self.balance / 2) / curr_price)
-
-                        self.orders.append(Order(sym, 'B', num_to_buy, curr_price, order_time))
-                        self.balance -= num_to_buy * curr_price
-                        self.portfolio[sym] += num_to_buy
+                        
+                        self.buy(sym, num_to_buy, curr_price, order_time)
                     elif order_time in full_moons:
                         # sell half the shares we own of this stock
                         num_to_sell = self.portfolio[sym] // 2
 
-                        self.orders.append(Order(sym, 'S', num_to_sell, curr_price, order_time)) 
-                        self.balance += num_to_sell * curr_price
-                        self.portfolio[sym] -= num_to_sell
+                        self.buy(sym, num_to_sell, curr_price, order_time)
