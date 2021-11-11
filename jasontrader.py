@@ -21,26 +21,51 @@ class JasonTrader(Trader):
         :return: None
         """
         date_index = self.tickers[list(self.tickers.keys())[0]].prices.index # gets the prices index from a random ticker in self.tickers
-        bal_saved = self.balance * .8
+        bal_saved = self.balance * .7
         self.balance -= bal_saved # set aside 80% of starting_bal as a stop loss
 
-        buy_points = {} # map from sym to (map from buyprice to quantity)
-
-        eps = .005 # epsilon for alg, hyperparameter to be tuned
+        # map from sym to (map from buyprice to quantity)
+        init_buy_points = {sym: {} for sym in self.tickers.keys()}
+        curr_buy_points = {sym: {} for sym in self.tickers.keys()}
+        eps = .002 # epsilon for alg, hyperparameter to be tuned
 
         for date in date_index:
             for sym, ticker in self.tickers.items():
-                ticker_buys = buy_points[sym]
+                init_ticker_buys = init_buy_points[sym]
+                curr_ticker_buys = curr_buy_points[sym]
+
                 curr_price = ticker.prices["Close"][date]
-                # TODO: if no positions, buy using half of balance
+                
+                # if no positions, buy using self.balance / len(self.tickers) / 2
+                if not self.portfolio[sym]:
+                    to_spend = self.balance / len(self.tickers) / 2
+                    num_to_buy = to_spend / curr_price
+                    self.buy(sym, num_to_buy, curr_price, date)
+                    init_ticker_buys[curr_price] = num_to_buy
+                    curr_ticker_buys[curr_price] = num_to_buy
+                else:
+                    num_to_buy = 0
+                    num_to_sell = 0
 
-                for buy_price, quantity in ticker_buys:
-                    price_diff_percent = (curr_price - buy_price) / buy_price
-                    if price_diff_percent > eps:
-                        num_to_sell = quantity / (2 ** math.floor(price_diff_percent / eps))
-                    elif price_diff_percent < -eps:
-                        num_to_buy = 0
+                    for buy_price, curr_quantity in curr_ticker_buys.items():
+                        init_quantity = init_ticker_buys[buy_price]
+                        price_change = (curr_price - buy_price) / buy_price
+                        if price_change > eps:
+                            # sell a fraction of initial buy quantity, min 1/32 or the rest of it
+                            print(f'curr {curr_quantity}')
+                            fraction_to_sell = init_quantity / (2 ** (math.floor(price_change / eps)))
+                            num_to_sell += min(curr_quantity, max(fraction_to_sell, init_quantity / 32))
+                            curr_buy_points[sym][buy_price] -= num_to_sell
+                        elif price_change < -eps:
+                            # buy using .1 of balance
+                            num_to_buy += .1 * self.balance / curr_price
+                    
+                    num_change = num_to_buy - num_to_sell
+                    if num_change > 0:
+                        self.buy(sym, num_change, curr_price, date)
+                        init_buy_points[sym][curr_price] = num_to_buy
+                        curr_buy_points[sym][curr_price] = num_to_buy
+                    elif num_change < 0:
+                        self.sell(sym, -num_change, curr_price, date)
 
-        
         self.balance += bal_saved # add back bal_saved that was set aside
-        return None
