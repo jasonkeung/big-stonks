@@ -1,5 +1,6 @@
 import math
 from datetime import datetime
+import pytz
 
 from ticker import Ticker
 from order import Order
@@ -143,6 +144,7 @@ class Trader:
 
         :return: total value of self.portfolio at time
         """
+        time = time.astimezone(pytz.timezone("US/Eastern"))
         portfolio_val = 0
         for symbol, quantity in self.portfolio.items():
             ticker = self.tickers[symbol]
