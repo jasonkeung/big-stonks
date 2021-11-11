@@ -18,11 +18,9 @@ from sklearn.linear_model import LinearRegression
 
 from trader import Trader
 
-from trader import Trader
-
 class KartikiTrader(Trader):
-    
-    
+
+
     #major edits needed: adjusting function to work with current classes
     """
     Trader with balance, portfolio, tickers to trade, and orders made.
@@ -37,22 +35,18 @@ class KartikiTrader(Trader):
 
 # Will use historical returns of Johnson & Johnson & its rival (Proctor & Gamble)
 
-# Will also use the US Dollar index and the SPDR S&P 500 ETF 
-<<<<<<< HEAD
-
-
-
+# Will also use the US Dollar index and the SPDR S&P 500 ETF
 =======
 >>>>>>> 73bf794b20730acc9bf52fb4663067750db7f497
 
     def run(self):
         # Fetch data from yfinance
         # 3-year daily data for J&J, P&G, SPY, USD index
-        
+
         end1 = datetime.date(2021, 11, 1)
         start1 = end1 - pd.Timedelta(days = 365 * 3)
-        
-        
+
+
         jj_df = yf.download("JNJ", start = start1, end = end1, progress = False)
         pg_df = yf.download("PG", start = start1, end = end1, progress = False)
         spy_df = yf.download("SPY", start = start1, end = end1, progress = False)
@@ -63,30 +57,25 @@ class KartikiTrader(Trader):
         pg_df['pg'] = np.log(pg_df['Adj Close'] / pg_df['Adj Close'].shift(1))
         spy_df['spy'] = np.log(spy_df['Adj Close'] / spy_df['Adj Close'].shift(1))
         usdx_df['usdx'] = np.log(usdx_df['Adj Close'] / usdx_df['Adj Close'].shift(1))
-        
+
         # Create a dataframe with X's (spy, pg, usdx) and Y (jj)
-        df = pd.concat([spy_df['spy'], jj_df['jj'], 
+        df = pd.concat([spy_df['spy'], jj_df['jj'],
                 pg_df['pg'], usdx_df['usdx']], axis = 1).dropna()
-        
-<<<<<<< HEAD
-        # Multiple linear regression steps
+
+         # Multiple linear regression steps
 =======
          # Multiple linear regression steps
 >>>>>>> 73bf794b20730acc9bf52fb4663067750db7f497
         mlr_skl_model = LinearRegression()
         X = df[['pg', 'spy', 'usdx']]
         y = df['jj']
-        mlr_skl_model.fit(X, y)
-        
+        mlr_skl_model.fit(X, y)s
+
         #edit line below
         pred_Y = mlr_skl_model.predict(X)
-        
+
         #finish
-        return None 
+        return None
 
 
 # In[ ]:
-
-
-
-
