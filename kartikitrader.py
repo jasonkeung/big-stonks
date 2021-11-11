@@ -16,6 +16,7 @@ from sklearn.linear_model import LinearRegression
 
 # In[2]:
 
+from trader import Trader
 
 from trader import Trader
 
@@ -37,9 +38,12 @@ class KartikiTrader(Trader):
 # Will use historical returns of Johnson & Johnson & its rival (Proctor & Gamble)
 
 # Will also use the US Dollar index and the SPDR S&P 500 ETF 
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> 73bf794b20730acc9bf52fb4663067750db7f497
 
     def run(self):
         # Fetch data from yfinance
@@ -64,7 +68,11 @@ class KartikiTrader(Trader):
         df = pd.concat([spy_df['spy'], jj_df['jj'], 
                 pg_df['pg'], usdx_df['usdx']], axis = 1).dropna()
         
+<<<<<<< HEAD
         # Multiple linear regression steps
+=======
+         # Multiple linear regression steps
+>>>>>>> 73bf794b20730acc9bf52fb4663067750db7f497
         mlr_skl_model = LinearRegression()
         X = df[['pg', 'spy', 'usdx']]
         y = df['jj']
