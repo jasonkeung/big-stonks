@@ -16,6 +16,7 @@ from sklearn.linear_model import LinearRegression
 
 # In[2]:
 
+from trader import Trader
 
 class KartikiTrader(Trader):
     
@@ -30,8 +31,16 @@ class KartikiTrader(Trader):
         portfolio: Map of tickers and quantity held Ex: {'GOOG': 2, 'TSLA': 3}
         orders: List of all Orders made Ex: [Order('GOOG', 'B', 2, 53.21, datetime(2021, 08, 02)), Order('GOOG', 'S', 2, 64.53, datetime(2021, 10, 21))]
     """
+# Will work with stocks in the consumer products domain
+
+# Will use historical returns of Johnson & Johnson & its rival (Proctor & Gamble)
+
+# Will also use the US Dollar index and the SPDR S&P 500 ETF 
 
     def run(self):
+        # Fetch data from yfinance
+        # 3-year daily data for J&J, P&G, SPY, USD index
+        
         end1 = datetime.date(2021, 11, 1)
         start1 = end1 - pd.Timedelta(days = 365 * 3)
         
@@ -47,9 +56,11 @@ class KartikiTrader(Trader):
         spy_df['spy'] = np.log(spy_df['Adj Close'] / spy_df['Adj Close'].shift(1))
         usdx_df['usdx'] = np.log(usdx_df['Adj Close'] / usdx_df['Adj Close'].shift(1))
         
+        # Create a dataframe with X's (spy, pg, usdx) and Y (jj)
         df = pd.concat([spy_df['spy'], jj_df['jj'], 
                 pg_df['pg'], usdx_df['usdx']], axis = 1).dropna()
         
+         # Multiple linear regression steps
         mlr_skl_model = LinearRegression()
         X = df[['pg', 'spy', 'usdx']]
         y = df['jj']
