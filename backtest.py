@@ -1,6 +1,8 @@
 import unittest
 
 from ticker import Ticker
+import warnings
+
 
 class Backtest(unittest.TestCase):
     
