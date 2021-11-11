@@ -1,3 +1,4 @@
+import math
 from datetime import datetime
 
 from ticker import Ticker
@@ -42,8 +43,13 @@ class Trader:
 
         :return: None
         """
+        assert not math.isclose(num_to_buy, 0), f'Cannot buy shares too close to zero: {num_to_buy} shares'
+        assert num_to_buy > 0, f'Cannot buy negative shares {num_to_buy} < 0'
+        to_spend = num_to_buy * curr_price
+        assert to_spend <= self.balance, f'Insufficient balance to buy {num_to_buy} {sym} shares @ ${round(curr_price, 3)} with balance ${self.balance}'
+        
         self.orders.append(Order(sym, 'B', num_to_buy, curr_price, date))
-        self.balance -= num_to_buy * curr_price
+        self.balance -= to_spend
         self.portfolio[sym] += num_to_buy
 
     def sell(self, sym, num_to_sell, curr_price, date):
@@ -60,9 +66,14 @@ class Trader:
 
         :return: None
         """
+        assert not math.isclose(num_to_sell, 0), f'Cannot sell shares too close to zero: {num_to_sell} shares'
+        assert num_to_sell > 0, f'Cannot sell negative shares {num_to_sell} < 0'
+        assert num_to_sell <= self.portfolio[sym], f'Cannot sell {num_to_sell} shares with only {self.portfolio[sym]} in portfolio'
+
         self.orders.append(Order(sym, 'S', num_to_sell, curr_price, date))
         self.balance += num_to_sell * curr_price
         self.portfolio[sym] -= num_to_sell
+
     def get_alpha(self):
         """
         Alpha = actual return - expected return. Ex: +30% - +10% = +20%
