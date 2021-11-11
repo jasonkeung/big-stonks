@@ -4,7 +4,7 @@ import pandas as pd
 import yfinance as yf
 import statsmodels.api as sm
 import warnings
-warnings.filterwarnings("ignore")
+
 
 
 
@@ -22,6 +22,7 @@ class ClaudeaTrader(Trader):
         portfolio: Map of tickers and quantity held Ex: {'GOOG': 2, 'TSLA': 3}
         orders: List of all Orders made Ex: [Order('GOOG', 'B', 2, 53.21, datetime(2021, 08, 02)), Order('GOOG', 'S', 2, 64.53, datetime(2021, 10, 21))]
     """
+    warnings.filterwarnings("ignore")
 
     def run(self):
         """
@@ -31,7 +32,7 @@ class ClaudeaTrader(Trader):
         """
         
         start_date = "2021-04-01"
-        end_date = "2021-05-30"
+        end_date = "2021-04-30"
         for sym, ticker in self.tickers.items():
             price = ticker.prices["Close"]
             for date in pd.date_range(start_date, end_date, freq = "1d"):
