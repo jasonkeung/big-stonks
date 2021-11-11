@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, tzinfo
+import pytz
 import math
 import pandas as pd
 
@@ -18,10 +19,12 @@ class MoonTrader(Trader):
 
         # convert new and full moons to datetime objects
         for i in range(len(new_moons)):
-            new_moons[i] = datetime.strptime('2021-' + new_moons[i], '%Y-%m-%d').date()
+            new_moons[i] = datetime.strptime('2021-' + new_moons[i], '%Y-%m-%d')
+            new_moons[i] = new_moons[i].astimezone(pytz.timezone('US/Eastern'))
 
         for i in range(len(full_moons)):
-            full_moons[i] = datetime.strptime('2021-' + full_moons[i], '%Y-%m-%d').date()
+            full_moons[i] = datetime.strptime('2021-' + full_moons[i], '%Y-%m-%d')
+            full_moons[i] = full_moons[i].astimezone(pytz.timezone('US/Eastern'))
 
         all_moons = []
         all_moons.extend(new_moons)
