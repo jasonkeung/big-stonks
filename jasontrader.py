@@ -52,7 +52,6 @@ class JasonTrader(Trader):
                         price_change = (curr_price - buy_price) / buy_price
                         if price_change > eps:
                             # sell a fraction of initial buy quantity, min 1/32 or the rest of it
-                            print(f'curr {curr_quantity}')
                             fraction_to_sell = init_quantity / (2 ** (math.floor(price_change / eps)))
                             num_to_sell += min(curr_quantity, max(fraction_to_sell, init_quantity / 32))
                             curr_buy_points[sym][buy_price] -= num_to_sell
