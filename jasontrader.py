@@ -1,5 +1,6 @@
+import math
+
 from trader import Trader
-from order import Order
 
 class JasonTrader(Trader):
     """
@@ -15,9 +16,31 @@ class JasonTrader(Trader):
 
     def run(self):
         """
-        Runs a scalping algorithm
+        Runs JasonTrader over the time range of self.tickers
 
         :return: None
         """
-        print(self.tickers[0].prices.index)
+        date_index = self.tickers[list(self.tickers.keys())[0]].prices.index # gets the prices index from a random ticker in self.tickers
+        bal_saved = self.balance * .8
+        self.balance -= bal_saved # set aside 80% of starting_bal as a stop loss
+
+        buy_points = {} # map from sym to (map from buyprice to quantity)
+
+        eps = .005 # epsilon for alg, hyperparameter to be tuned
+
+        for date in date_index:
+            for sym, ticker in self.tickers.items():
+                ticker_buys = buy_points[sym]
+                curr_price = ticker.prices["Close"][date]
+                # TODO: if no positions, buy using half of balance
+
+                for buy_price, quantity in ticker_buys:
+                    price_diff_percent = (curr_price - buy_price) / buy_price
+                    if price_diff_percent > eps:
+                        num_to_sell = quantity / (2 ** math.floor(price_diff_percent / eps))
+                    elif price_diff_percent < -eps:
+                        num_to_buy = 0
+
+        
+        self.balance += bal_saved # add back bal_saved that was set aside
         return None
