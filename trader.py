@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from ticker import Ticker
+from order import Order
 
 
 class Trader:
@@ -26,7 +27,42 @@ class Trader:
         self.balance = starting_bal
         self.portfolio = {sym: 0 for sym in self.tickers.keys()}
         self.orders = []
+    
+    def buy(self, sym, num_to_buy, curr_price, date):
+        """
+        Wraps needed actions for placing a buy order.
+        Appends a new Order to self.orders
+        Subtracts from self.balance accordingly
+        Adds to self.portfolio accordingly
 
+        :param sym: symbol of ticker to buy
+        :param num_to_buy: number of shares to buy
+        :param curr_price: price of ticker to buy at
+        :param date: datetime at which to buy at
+
+        :return: None
+        """
+        self.orders.append(Order(sym, 'B', num_to_buy, curr_price, date))
+        self.balance -= num_to_buy * curr_price
+        self.portfolio[sym] += num_to_buy
+
+    def sell(self, sym, num_to_sell, curr_price, date):
+        """
+        Wraps needed actions for placing a sell order.
+        Appends a new Order to self.orders
+        Adds from self.balance accordingly
+        Removes to self.portfolio accordingly
+
+        :param sym: symbol of ticker to sell
+        :param num_to_sell: number of shares to sell
+        :param curr_price: price of ticker to sell at
+        :param date: datetime at which to sell at
+
+        :return: None
+        """
+        self.orders.append(Order(sym, 'S', num_to_sell, curr_price, date))
+        self.balance += num_to_sell * curr_price
+        self.portfolio[sym] -= num_to_sell
     def get_alpha(self):
         """
         Alpha = actual return - expected return. Ex: +30% - +10% = +20%
