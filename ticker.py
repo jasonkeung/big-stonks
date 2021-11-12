@@ -18,11 +18,11 @@ class Ticker:
         self.interval = interval
         self.period = period
     
-    def get_mva(self, window_len=5):
+    def get_mva(self, window_len):
         """
         Adds and returns a column to self.prices representing the moving average taken over window_len
         
-        :param window_len: (Optional) Window length over which to create the moving average
+        :param window_len: Window length over which to create the moving average
 
         :return: Column representing the window_len-moving average
         """
