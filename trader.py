@@ -57,8 +57,8 @@ class Trader:
         """
         Wraps needed actions for placing a sell order.
         Appends a new Order to self.orders
-        Adds from self.balance accordingly
-        Removes to self.portfolio accordingly
+        Adds to self.balance accordingly
+        Removes from self.portfolio accordingly
 
         :param sym: symbol of ticker to sell
         :param num_to_sell: number of shares to sell
