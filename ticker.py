@@ -19,8 +19,27 @@ class Ticker:
         self.period = period
     
     def get_mva(self, window_len=5):
+        """
+        Adds and returns a column to self.prices representing the moving average taken over window_len
+        
+        :param window_len: (Optional) Window length over which to create the moving average
+
+        :return: Column representing the window_len-moving average
+        """
         ave = self.prices[['Close']].rolling(window=window_len).mean()
         self.prices[f'{window_len} Moving Average'] = ave['Close']
 
         return ave['Close']
         
+    def get_tickers(symbols, interval, period):
+        """
+        Creates multiple Ticker objects over the given interval and period.
+        Convenience function likely to be used in backtest.py
+
+        :param symbols: List of string symbols to create Tickers for
+        :param interval: interval for Tickers created
+        :param period: period for Tickers created
+
+        :return: List of Ticker objects
+        """
+        return [Ticker(sym, interval, period) for sym in symbols]
