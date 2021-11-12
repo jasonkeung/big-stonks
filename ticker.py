@@ -20,7 +20,7 @@ class Ticker:
     
     def get_mva(self, window_len=5):
         ave = self.prices[['Close']].rolling(window=window_len).mean()
-        self.prices['Moving Average'] = ave['Close']
+        self.prices[f'{window_len} Moving Average'] = ave['Close']
 
         return ave['Close']
         
