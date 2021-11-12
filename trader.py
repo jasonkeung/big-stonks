@@ -47,7 +47,7 @@ class Trader:
         assert not math.isclose(num_to_buy, 0), f'Cannot buy shares too close to zero: {num_to_buy} shares'
         assert num_to_buy > 0, f'Cannot buy negative shares {num_to_buy} < 0'
         to_spend = num_to_buy * curr_price
-        assert to_spend <= self.balance, f'Insufficient balance to buy {num_to_buy} {sym} shares @ ${round(curr_price, 3)} with balance ${self.balance}'
+        assert to_spend <= self.balance or math.isclose(self.balance - to_spend, 0, abs_tol=1e-7), f'Insufficient balance to buy {num_to_buy} {sym} shares @ ${round(curr_price, 3)} with balance ${self.balance}, costs ${num_to_buy * curr_price}'
         
         self.orders.append(Order(sym, 'B', num_to_buy, curr_price, date))
         self.balance -= to_spend
@@ -144,10 +144,14 @@ class Trader:
 
         :return: total value of self.portfolio at time
         """
-        time = time.astimezone(pytz.timezone("US/Eastern"))
+        
         portfolio_val = 0
         for symbol, quantity in self.portfolio.items():
             ticker = self.tickers[symbol]
+
+            if hasattr(ticker.prices.index.dtype, 'tz'):
+                time = time.astimezone(pytz.timezone("US/Eastern"))
+
             last_price = ticker.prices.loc[ticker.prices.index <= time]['Close'].iloc[-1]
             portfolio_val += quantity * last_price
         
