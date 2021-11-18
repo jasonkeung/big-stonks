@@ -130,12 +130,12 @@ def trader_mva(self, num_past_days, buy_thresh, sell_thresh):
                     trade_mult = 1
 
                     #buy if curr price is less than mva
-                    if ratio < 0.8:
+                    if ratio < buy_thresh:
                         trade_mult = ratio * 5
                         if self.balance >= trade_mult * curr_price:
                             self.buy(sym, trade_mult, curr_price, date)
                     #sell if curr price greater than mva
-                    elif ratio > 1.2:
+                    elif ratio > sell_thresh:
                         print(mva, num_past_days)
                         #trade_mult = math.ceil(ratio)
                         if self.portfolio[sym] >= trade_mult: #have at least one stock
@@ -169,8 +169,8 @@ class HenTayTrader(Trader):
         '''
         trader_mva(self, 
                     num_past_days = 3, 
-                    buy_thresh = 0.1, 
-                    sell_thresh = 0.1)
+                    buy_thresh = 0.8, 
+                    sell_thresh = 1.2)
         return None
    
        
