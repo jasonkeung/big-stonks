@@ -106,13 +106,12 @@ class Trader:
 
         :return: percentage return of SPY S&P 500
         """
-        arbitrary_ticker = self.tickers[list(self.tickers.keys())[
-            0]]  # get a random ticker from self.tickers to get its interval/period
-        sp500 = Ticker('SPY', arbitrary_ticker.interval,
-                       arbitrary_ticker.period)
+        # Get a random ticker from self.tickers to get its interval/period
+        arbitrary_ticker = self.tickers[list(self.tickers.keys())[0]]
+        sp500 = Ticker('SPY', arbitrary_ticker.interval, arbitrary_ticker.period)
+
         # percentage return of entire range of SPY/S&P 500
-        sp500_return = (
-            sp500.prices.iloc[-1]['Close'] / sp500.prices.iloc[0]['Close']) - 1
+        sp500_return = (sp500.prices.iloc[-1]['Close'] / sp500.prices.iloc[0]['Close']) - 1
         return sp500_return * 100
 
     def get_ticker_hold_return(self, ticker):
@@ -122,8 +121,8 @@ class Trader:
         :param ticker: Ticker for which to buy and hold for entire period
         :return: percentage return of buying and holding
         """
-        ticker_hold_return = (ticker.prices.iloc[-1]['Close'] / ticker.prices.iloc[0]
-                              ['Close']) - 1  # percentage return of entire range of SPY/S&P 500
+        # Percentage return of entire range of SPY/S&P 500
+        ticker_hold_return = (ticker.prices.iloc[-1]['Close'] / ticker.prices.iloc[0]['Close']) - 1  
         return ticker_hold_return * 100
 
     def get_profit(self):
@@ -163,8 +162,7 @@ class Trader:
             if hasattr(ticker.prices.index.dtype, 'tz'):
                 time = time.astimezone(pytz.timezone("US/Eastern"))
 
-            last_price = ticker.prices.loc[ticker.prices.index <=
-                                           time]['Close'].iloc[-1]
+            last_price = ticker.prices.loc[ticker.prices.index <= time]['Close'].iloc[-1]
             portfolio_val += quantity * last_price
 
         return round(portfolio_val, 3)
