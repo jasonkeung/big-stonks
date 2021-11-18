@@ -74,20 +74,30 @@ class JasonTrader(Trader):
         num_to_buy = 0
         num_to_sell = 0
 
-        # buy more if 30 moving average is greater than 180 moving average
-        if ticker.prices["mva30"][date] > ticker.prices["mva180"][date]:
-            print(curr_price, self.balance)
-            num_to_buy += self.balance / len(self.tickers) / 2 / curr_price
+        # buy more if 30 moving average is greater than 2% over the 180 moving average
+        if ticker.prices["mva30"][date] > ticker.prices["mva180"][date] * 1.02:
+            bal_to_spend = self.balance / len(self.tickers) / 2
 
+            # Only buy if the amount to spend is significant
+            if bal_to_spend > (self.starting_bal - self.bal_saved) * .05:
+                num_to_buy +=  bal_to_spend / curr_price
+        
         for buy_price, curr_quantity in curr_buys.items():
-            init_quantity = init_buys[buy_price]
-            price_change = (curr_price - buy_price) / buy_price
-            if price_change > self.eps:
-                # sell a fraction of initial buy quantity, min 1/32 or the rest of it
-                fraction_to_sell = init_quantity / (2 ** (math.floor(price_change / self.eps)))
-                num_to_sell += min(curr_quantity,
-                                   max(fraction_to_sell, init_quantity / 32))
-                self.curr_buy_points[sym][buy_price] -= num_to_sell
+            if curr_quantity > 0: 
+                init_quantity = init_buys[buy_price]
+                price_change = (curr_price - buy_price) / buy_price
+                if price_change > self.eps:
+                    # sell a fraction of initial buy quantity, min 1/32 or the rest of it
+                    epsilons_above = min(math.floor(price_change / self.eps), 5)
+                    fraction_to_sell = init_quantity / (2 ** epsilons_above)
+                    num_to_sell += min(curr_quantity, fraction_to_sell)
+                    self.curr_buy_points[sym][buy_price] -= num_to_sell
+        
+        # sell all holdings if 30 moving average is less than 2% under the 180 moving average
+        if ticker.prices["mva30"][date] < ticker.prices["mva180"][date] * .98:
+            # Absolutely set num_to_sell as the holdings
+            num_to_sell = self.portfolio[sym]
+        
 
         # compare buys and sells to make the net order
         num_change = num_to_buy - num_to_sell
