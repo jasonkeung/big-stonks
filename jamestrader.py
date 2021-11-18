@@ -29,7 +29,10 @@ class JamesTrader(Trader):
         end_date = "2021-05-30"
         for date in pd.date_range(start_date, end_date, freq = "1d"):
             for sym, ticker in self.tickers.items():
-                curr_price = ticker.prices["Close"][date]
+                ticker.loc[:, 'fastline'] = ticker['close'].rolling(window = 50).mean()
+                ticker.loc[:, 'slowline'] = ticker['close'].rolling(window = 200).mean()
+                ticker.loc[:, 'signal'] = np.where(ticker['window_ST'] > ticker['window_LT'], 1, -1)
+                curr_price = ticker.ticker["Close"][date]
                 
 
                         
