@@ -21,7 +21,7 @@ from trader import Trader
 class KartikiTrader(Trader):
 
 
-    #major edits needed: adjusting function to work with current classes
+    #major edits needed: generalizing function to work with current classes
     """
     Trader with balance, portfolio, tickers to trade, and orders made.
     Attributes:
@@ -31,13 +31,11 @@ class KartikiTrader(Trader):
         portfolio: Map of tickers and quantity held Ex: {'GOOG': 2, 'TSLA': 3}
         orders: List of all Orders made Ex: [Order('GOOG', 'B', 2, 53.21, datetime(2021, 08, 02)), Order('GOOG', 'S', 2, 64.53, datetime(2021, 10, 21))]
     """
-# Will work with stocks in the consumer products domain
+    # Will work with stocks in the consumer products domain
 
-# Will use historical returns of Johnson & Johnson & its rival (Proctor & Gamble)
+    # Will use historical returns of Johnson & Johnson & its rival (Proctor & Gamble)
 
-# Will also use the US Dollar index and the SPDR S&P 500 ETF
-=======
->>>>>>> 73bf794b20730acc9bf52fb4663067750db7f497
+    # Will also use the US Dollar index and the SPDR S&P 500 ETF
 
     def run(self):
         # Fetch data from yfinance
@@ -47,10 +45,10 @@ class KartikiTrader(Trader):
         start1 = end1 - pd.Timedelta(days = 365 * 3)
 
 
-        jj_df = yf.download("JNJ", start = start1, end = end1, progress = False)
-        pg_df = yf.download("PG", start = start1, end = end1, progress = False)
-        spy_df = yf.download("SPY", start = start1, end = end1, progress = False)
-        usdx_df = yf.download("DX-Y.NYB", start = start1, end = end1, progress = False)
+        jj_df = yf.download('JNJ', start = start1, end = end1, progress = False)
+        pg_df = yf.download('PG', start = start1, end = end1, progress = False)
+        spy_df = yf.download('SPY', start = start1, end = end1, progress = False)
+        usdx_df = yf.download('DX-Y.NYB', start = start1, end = end1, progress = False)
 
         # Log returns based on closing price (return per day?)
         jj_df['jj'] = np.log(jj_df['Adj Close'] / jj_df['Adj Close'].shift(1))
@@ -62,20 +60,42 @@ class KartikiTrader(Trader):
         df = pd.concat([spy_df['spy'], jj_df['jj'],
                 pg_df['pg'], usdx_df['usdx']], axis = 1).dropna()
 
-         # Multiple linear regression steps
-=======
-         # Multiple linear regression steps
->>>>>>> 73bf794b20730acc9bf52fb4663067750db7f497
-        mlr_skl_model = LinearRegression()
+
+        # Multiple linear regression steps
+
+        pred_model = LinearRegression()
         X = df[['pg', 'spy', 'usdx']]
         y = df['jj']
-        mlr_skl_model.fit(X, y)s
+        pred_model.fit(X, y)
 
-        #edit line below
-        pred_Y = mlr_skl_model.predict(X)
 
-        #finish
+        pred_Y = pred_model.predict(X)
+
+
+        curr_price = jj_df["Close"].tail(1)
+        date_index = self.tickers[list(self.tickers.keys())[0]].prices.index
+
+        for date in date_index:
+            buy(date, curr_price, pred_Y)
+            sell(date, curr_price, pred_Y)
+
         return None
+
+    #Buy
+        def buy(date, curr_price, pred_Y):
+            if self.balance >= pred_Y and np.mean(pred_Y) > curr_price:
+                self.buy('JNJ', 1 , curr_price, date)
+            return None
+
+
+    #Sell
+       def sell(date, curr_price, pred_Y):
+           if np.mean(pred_Y) < curr_price:
+               self.sell('JNJ', 1 , curr_price, date)
+           return None
+
+
+
 
 
 # In[ ]:
