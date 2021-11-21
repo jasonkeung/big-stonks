@@ -50,7 +50,7 @@ class Trader:
         assert num_to_buy > 0, f'Cannot buy negative shares {num_to_buy} < 0'
         to_spend = num_to_buy * curr_price
         assert to_spend <= self.balance or math.isclose(
-            self.balance - to_spend, 0, abs_tol=1e-7), f'Insufficient balance to buy {num_to_buy} {sym} shares @ ${round(curr_price, 3)} with balance ${self.balance}, costs ${num_to_buy * curr_price}'
+            self.balance - to_spend, 0, abs_tol=1e-7), f'Insufficient balance to buy {num_to_buy} {sym} shares @ ${round(curr_price, 3)} with balance ${round(self.balance, 3)}, costs ${round(num_to_buy * curr_price, 3)}'
 
         self.orders.append(Order(sym, 'B', num_to_buy, curr_price, date))
         self.balance -= to_spend
