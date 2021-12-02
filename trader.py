@@ -1,6 +1,7 @@
 import math
 from datetime import datetime
 import pytz
+import plotly.graph_objects as go
 
 from ticker import Ticker
 from order import Order
@@ -166,6 +167,41 @@ class Trader:
             portfolio_val += quantity * last_price
 
         return round(portfolio_val, 3)
+
+    def plot_trades(self):
+        """
+        Plots the ticker price history and orders made.
+
+        :return: None
+        """
+        
+        for sym, ticker in self.tickers.items():
+            prices = ticker.prices
+            fig = go.Figure(data=[go.Candlestick(x=prices.index,
+                            open=prices['Open'],
+                            high=prices['High'],
+                            low=prices['Low'],
+                            close=prices['Close'])])
+
+            fig.update_layout(
+                title=f'{sym} Price History',
+                yaxis_title='USD',
+            )
+            # add buy/sell order annotations
+            for order in self.orders:
+                # if this order if for the graph we are making
+                if order.ticker_symbol == sym:
+                    # blue for buys, yellow for sells
+                    fig.add_shape(type="line",
+                        xref="x", yref="paper",
+                        x0=order.order_time, y0=0, x1=order.order_time, y1=1,
+                        line=dict(color="RoyalBlue" if order.order_type == 'B' else "GoldenRod",width=1)
+                    )
+
+
+            fig.show()
+
+
 
     def print_ending_info(self):
         """
