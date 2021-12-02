@@ -1,11 +1,6 @@
 import unittest
 
-from moontrader import MoonTrader
-from claudeatrader import ClaudeaTrader
-from jasontrader import JasonTrader
-from hentaytrader import HenTayTrader
 from ticker import Ticker
-import warnings
 
 
 class Backtest(unittest.TestCase):
