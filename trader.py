@@ -120,19 +120,25 @@ class Trader:
         Calculates the return of buying at start and holding for the entire period of ticker
 
         :param ticker: Ticker for which to buy and hold for entire period
+
         :return: percentage return of buying and holding
         """
         # Percentage return of entire range of SPY/S&P 500
         ticker_hold_return = (ticker.prices.iloc[-1]['Close'] / ticker.prices.iloc[0]['Close']) - 1  
         return ticker_hold_return * 100
 
-    def get_profit(self):
+    def get_orders_profit(order_list):
         """
-        :return: total dollar profit from selling (does not include starting balance)
+        Returns the total dollar profit from orders made in a given list.
+        Does not include unsold/held posititons.
+
+        :param order_list: list of orders to calculate profit from
+
+        :return: total dollar profit 
         """
         profit = 0
 
-        for order in self.orders:
+        for order in order_list:
             order_type = order.order_type
             quantity = order.quantity
             price = order.price
@@ -182,6 +188,8 @@ class Trader:
                             high=prices['High'],
                             low=prices['Low'],
                             close=prices['Close'])])
+            ticker_orders = [order for order in self.orders if order.ticker_symbol == sym]
+            ticker_profit = self.get_profit()
 
             fig.update_layout(
                 title=f'{sym} Price History',
