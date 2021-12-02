@@ -123,7 +123,7 @@ class Trader:
 
         :return: percentage return of buying and holding
         """
-        # Percentage return of entire range of SPY/S&P 500
+        # Percentage return of entire range of the given ticker
         ticker_hold_return = (ticker.prices.iloc[-1]['Close'] / ticker.prices.iloc[0]['Close']) - 1  
         return ticker_hold_return * 100
 
@@ -176,7 +176,7 @@ class Trader:
 
     def plot_trades(self):
         """
-        Plots the ticker price history and orders made.
+        Plots the ticker price history and orders made with gains for each ticker.
 
         :return: None
         """
@@ -188,13 +188,28 @@ class Trader:
                             high=prices['High'],
                             low=prices['Low'],
                             close=prices['Close'])])
-            ticker_orders = [order for order in self.orders if order.ticker_symbol == sym]
-            ticker_profit = self.get_profit()
 
-            fig.update_layout(
-                title=f'{sym} Price History',
-                yaxis_title='USD',
-            )
+            ticker_orders = [order for order in self.orders if order.ticker_symbol == sym]
+            if ticker_orders:
+                ticker_value_bought = sum([order.price * order.quantity for order in ticker_orders if order.order_type == 'B'])
+                ticker_value_sold = sum([order.price * order.quantity for order in ticker_orders if order.order_type == 'S'])
+        
+                ticker_gains = ticker_value_sold - ticker_value_bought + self.portfolio[sym] * ticker.prices['Close'].iloc[-1]
+                ticker_gains_percent = ((ticker_value_sold + self.portfolio[sym] * ticker.prices['Close'].iloc[-1]) / ticker_value_bought - 1) * 100
+                
+                ticker_gains = '+$' + str(round(ticker_gains, 2)) if ticker_gains > 0 else '-$' + str(-1 * round(ticker_gains, 2))
+                ticker_gains_percent = '+' + str(round(ticker_gains_percent, 2)) + '%' if ticker_gains_percent > 0 else str(round(ticker_gains_percent, 2)) + '%'
+
+                fig.update_layout(
+                    title=f'{type(self).__name__} {sym} Trades ({ticker_gains}, {ticker_gains_percent})',
+                    yaxis_title='USD',
+                )
+            else:
+                fig.update_layout(
+                    title=f'{type(self).__name__} {sym} Trades (no trades made)',
+                    yaxis_title='USD',
+                )
+
             # add buy/sell order annotations
             for order in self.orders:
                 # if this order if for the graph we are making
@@ -207,12 +222,9 @@ class Trader:
                     )
                     fig.add_annotation(
                         x=order.order_time, y=order.price / 2, xref='x', yref='y',
-                        showarrow=False, xanchor='left', text=f'[{order.order_type}] {round(order.quantity, 2)} @ ${round(order.price, 2)}')
-
+                        showarrow=False, xanchor='left', text=f'[{order.order_type}] {round(order.quantity, 2)} shares @ ${round(order.price, 2)}')
 
             fig.show()
-
-
 
     def print_ending_info(self):
         """
