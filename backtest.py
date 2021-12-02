@@ -16,7 +16,7 @@ class Backtest(unittest.TestCase):
 
         jasontrader.print_ending_info()
 
-    @unittest.skip  # uncomment this to skip 
+    @unittest.skip  # uncomment this to skip
     def testClaudeaTrader(self):
         from claudeatrader import ClaudeaTrader
         ticker_msft = Ticker('MSFT', '1d', '1y')
@@ -37,6 +37,18 @@ class Backtest(unittest.TestCase):
 
         jamestrader.print_ending_info()
         jamestrader.plot_trades()
+
+    @unittest.skip  # uncomment this to skip
+    def testKartikiTrader(self):
+        from kartikitrader import KartikiTrader
+        tickers = Ticker.get_tickers(
+            ['JNJ', 'PG', 'SPY', 'DX-Y.NYB'], interval='1d', period='2y')
+
+        ktrader = KartikiTrader(tickers, 10000)
+        ktrader.run()
+
+        ktrader.print_ending_info()
+        ktrader.plot_trades()
 
 if __name__ == '__main__':
     unittest.main()
