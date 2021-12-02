@@ -133,9 +133,9 @@ class Trader:
         profit = 0
 
         for order in self.orders:
-            order_type = order['order_type']
-            quantity = order['quantity']
-            price = order['price']
+            order_type = order.order_type
+            quantity = order.quantity
+            price = order.price
 
             if order_type == 'B':
                 profit -= quantity * price
@@ -197,6 +197,9 @@ class Trader:
                         x0=order.order_time, y0=0, x1=order.order_time, y1=1,
                         line=dict(color="RoyalBlue" if order.order_type == 'B' else "GoldenRod",width=1)
                     )
+                    fig.add_annotation(
+                        x=order.order_time, y=order.price / 2, xref='x', yref='y',
+                        showarrow=False, xanchor='left', text=f'[{order.order_type}] {round(order.quantity, 2)} @ ${round(order.price, 2)}')
 
 
             fig.show()
