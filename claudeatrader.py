@@ -42,15 +42,18 @@ class ClaudeaTrader(Trader):
         """
         super().__init__(tickers_list, starting_bal)
         date_index = self.tickers[list(self.tickers.keys())[0]].prices.index
+        print(len(date_index))
         if len(date_index) > training_days:
             self.training_date = date_index[0:training_days]
             self.trading_date = date_index[training_days:len(date_index)]
             self.models = {sym: self.train_model(self.training_date, sym, ticker) for sym, ticker in self.tickers.items()} # the model for each sym
-            # for sym, ticker in self.tickers.items():
-            #     self.train_model(self.training_date, sym, ticker)
+
         else:
             raise Exception(f'the number of training days is too big for the period of time given.')
-
+        
+        # map from sym to (map from buyprice to quantity)
+        self.buy_points = {sym: [] for sym in self.tickers.keys()}
+        self.alpha = 0.01
     def run(self):
         """
         Runs asdasdasdasd
@@ -69,23 +72,28 @@ class ClaudeaTrader(Trader):
                 #                 enforce_stationarity=False,
                 #                 enforce_invertibility=False, disp=False)
                 results = self.models[sym].fit(past_price)
-                pred = results.predict(1)[0]
+                pred = sum(results.predict(5))/5
                 # pred_ci = pred.conf_int()
                 if pred > curr_price and self.balance > curr_price:
                     # buy
                     num_to_buy = math.floor((self.balance) / curr_price)
-
                     self.buy(sym, num_to_buy, curr_price, date)
-                    self.portfolio[sym] += num_to_buy
-                if pred < price[date] and self.portfolio[sym] > 0:
+                    self.buy_points[sym].append(curr_price)
+
+                elif pred < curr_price and max(self.buy_points[sym], default = 0) < curr_price and self.portfolio[sym] > 0:
                     # sell
                     num_to_sell = self.portfolio[sym]
                     self.sell(sym, num_to_buy, curr_price, date)
-                    self.portfolio[sym] -= num_to_sell
+                    self.buy_points[sym] = []
                 
+                elif max(self.buy_points[sym], default = 0)*(1+self.alpha) < curr_price and self.portfolio[sym] > 0:
+                    num_to_sell = self.portfolio[sym]
+                    self.sell(sym, num_to_buy, curr_price, date)
+                    self.buy_points[sym] = []
+
     def train_model(self, date, sym, ticker):
         training_price =  ticker.prices.loc[date, "Close"]
-        model = pm.auto_arima(training_price, error_action='ignore', seasonal=True, m = 18, max_p = 10, max_q = 10)
+        model = pm.auto_arima(training_price, error_action='ignore', seasonal=True, max_p = 10, max_q = 10)
         return model
 
     # def train_model(self, date, sym, ticker):

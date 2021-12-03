@@ -21,7 +21,7 @@ class Backtest(unittest.TestCase):
         tickers = Ticker.get_tickers(
             ['GE', 'AMD', 'TSLA', 'BA'], interval='1d', period='9mo')
 
-        claudeatrader = ClaudeaTrader(tickers, 10000, training_days = 90)
+        claudeatrader = ClaudeaTrader(tickers, 10000, training_days = 180)
         claudeatrader.run()
 
         claudeatrader.print_ending_info()
