@@ -1,6 +1,7 @@
 import math
 from datetime import datetime
 import pytz
+import plotly.graph_objects as go
 
 from ticker import Ticker
 from order import Order
@@ -50,7 +51,7 @@ class Trader:
         assert num_to_buy > 0, f'Cannot buy negative shares {num_to_buy} < 0'
         to_spend = num_to_buy * curr_price
         assert to_spend <= self.balance or math.isclose(
-            self.balance - to_spend, 0, abs_tol=1e-7), f'Insufficient balance to buy {num_to_buy} {sym} shares @ ${round(curr_price, 3)} with balance ${self.balance}, costs ${num_to_buy * curr_price}'
+            self.balance - to_spend, 0, abs_tol=1e-7), f'Insufficient balance to buy {num_to_buy} {sym} shares @ ${round(curr_price, 3)} with balance ${round(self.balance, 3)}, costs ${round(num_to_buy * curr_price, 3)}'
 
         self.orders.append(Order(sym, 'B', num_to_buy, curr_price, date))
         self.balance -= to_spend
@@ -119,22 +120,28 @@ class Trader:
         Calculates the return of buying at start and holding for the entire period of ticker
 
         :param ticker: Ticker for which to buy and hold for entire period
+
         :return: percentage return of buying and holding
         """
-        # Percentage return of entire range of SPY/S&P 500
+        # Percentage return of entire range of the given ticker
         ticker_hold_return = (ticker.prices.iloc[-1]['Close'] / ticker.prices.iloc[0]['Close']) - 1  
         return ticker_hold_return * 100
 
-    def get_profit(self):
+    def get_orders_profit(order_list):
         """
-        :return: total dollar profit from selling (does not include starting balance)
+        Returns the total dollar profit from orders made in a given list.
+        Does not include unsold/held posititons.
+
+        :param order_list: list of orders to calculate profit from
+
+        :return: total dollar profit 
         """
         profit = 0
 
-        for order in self.orders:
-            order_type = order['order_type']
-            quantity = order['quantity']
-            price = order['price']
+        for order in order_list:
+            order_type = order.order_type
+            quantity = order.quantity
+            price = order.price
 
             if order_type == 'B':
                 profit -= quantity * price
@@ -166,6 +173,58 @@ class Trader:
             portfolio_val += quantity * last_price
 
         return round(portfolio_val, 3)
+
+    def plot_trades(self):
+        """
+        Plots the ticker price history and orders made with gains for each ticker.
+
+        :return: None
+        """
+        
+        for sym, ticker in self.tickers.items():
+            prices = ticker.prices
+            fig = go.Figure(data=[go.Candlestick(x=prices.index,
+                            open=prices['Open'],
+                            high=prices['High'],
+                            low=prices['Low'],
+                            close=prices['Close'])])
+
+            ticker_orders = [order for order in self.orders if order.ticker_symbol == sym]
+            if ticker_orders:
+                ticker_value_bought = sum([order.price * order.quantity for order in ticker_orders if order.order_type == 'B'])
+                ticker_value_sold = sum([order.price * order.quantity for order in ticker_orders if order.order_type == 'S'])
+        
+                ticker_gains = ticker_value_sold - ticker_value_bought + self.portfolio[sym] * ticker.prices['Close'].iloc[-1]
+                ticker_gains_percent = ((ticker_value_sold + self.portfolio[sym] * ticker.prices['Close'].iloc[-1]) / ticker_value_bought - 1) * 100
+                
+                ticker_gains = '+$' + str(round(ticker_gains, 2)) if ticker_gains > 0 else '-$' + str(-1 * round(ticker_gains, 2))
+                ticker_gains_percent = '+' + str(round(ticker_gains_percent, 2)) + '%' if ticker_gains_percent > 0 else str(round(ticker_gains_percent, 2)) + '%'
+
+                fig.update_layout(
+                    title=f'{type(self).__name__} {sym} Trades ({ticker_gains}, {ticker_gains_percent})',
+                    yaxis_title='USD',
+                )
+            else:
+                fig.update_layout(
+                    title=f'{type(self).__name__} {sym} Trades (no trades made)',
+                    yaxis_title='USD',
+                )
+
+            # add buy/sell order annotations
+            for order in self.orders:
+                # if this order if for the graph we are making
+                if order.ticker_symbol == sym:
+                    # blue for buys, yellow for sells
+                    fig.add_shape(type="line",
+                        xref="x", yref="paper",
+                        x0=order.order_time, y0=0, x1=order.order_time, y1=1,
+                        line=dict(color="RoyalBlue" if order.order_type == 'B' else "GoldenRod",width=1)
+                    )
+                    fig.add_annotation(
+                        x=order.order_time, y=order.price / 2, xref='x', yref='y',
+                        showarrow=False, xanchor='left', text=f'[{order.order_type}] {round(order.quantity, 2)} shares @ ${round(order.price, 2)}')
+
+            fig.show()
 
     def print_ending_info(self):
         """
