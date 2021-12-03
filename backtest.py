@@ -15,17 +15,18 @@ class Backtest(unittest.TestCase):
 
         jasontrader.print_ending_info()
 
-    @unittest.skip  # uncomment this to skip
+    # @unittest.skip  # uncomment this to skip
     def testClaudeaTrader(self):
         from claudeatrader import ClaudeaTrader
-        ticker_msft = Ticker('MSFT', '1d', '1y')
+        tickers = Ticker.get_tickers(
+            ['GE', 'AMD', 'TSLA', 'BA'], interval='1d', period='9mo')
 
-        claudeatrader = ClaudeaTrader([ticker_msft], 10000)
+        claudeatrader = ClaudeaTrader(tickers, 10000, training_days = 90)
         claudeatrader.run()
 
         claudeatrader.print_ending_info()
 
-    # @unittest.skip # uncomment this to skip
+    @unittest.skip # uncomment this to skip
     def testJamesTrader(self):
         from jamesstreet import JamesTrader
         tickers = Ticker.get_tickers(
