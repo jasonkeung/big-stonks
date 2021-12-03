@@ -6,7 +6,7 @@ import warnings
 
 class Backtest(unittest.TestCase):
     
-    # @unittest.skip # uncomment this to skip
+    @unittest.skip # uncomment this to skip
     def testJasonTrader(self):
         from jasontrader import JasonTrader
         tickers = Ticker.get_tickers(['GE', 'AMD', 'F', 'MSFT'], interval='15m', period='1mo')
@@ -16,12 +16,12 @@ class Backtest(unittest.TestCase):
         
         jasontrader.print_ending_info()
 
-    @unittest.skip # uncomment this to skip
+    # @unittest.skip # uncomment this to skip
     def testClaudeaTrader(self):
         from claudeatrader import ClaudeaTrader
-        ticker_msft = Ticker('MSFT', '1d', '1y')
+        ticker_msft = Ticker('MSFT', '1d', period = '8mo')
 
-        claudeatrader = ClaudeaTrader([ticker_msft], 10000)
+        claudeatrader = ClaudeaTrader([ticker_msft], 10000, training_days = 30)
         claudeatrader.run()
 
         claudeatrader.print_ending_info()
