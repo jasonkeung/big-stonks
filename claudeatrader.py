@@ -41,7 +41,7 @@ class ClaudeaTrader(Trader):
     
     def run(self):
         """
-        Runs asdasdasdasd
+        Runs trader per day for each stocks
 
         :return: None
         """
