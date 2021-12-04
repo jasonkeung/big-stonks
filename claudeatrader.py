@@ -1,19 +1,8 @@
 from datetime import datetime
 import math
-import pandas as pd
-import yfinance as yf
-import statsmodels.api as sm
 import warnings
-from statsmodels.tsa.arima_model import ARIMA
-from sklearn.metrics import mean_squared_error
-import pmdarima as pm
-from pmdarima.pipeline import Pipeline
-from pmdarima.preprocessing import BoxCoxEndogTransformer
-
-# from pyramid.arima import auto_arima
-
-
-
+import statsmodels.api as sm
+from itertools import product
 
 from trader import Trader
 from order import Order
@@ -34,15 +23,9 @@ class ClaudeaTrader(Trader):
     def __init__(self, tickers_list, starting_bal, training_days = 180):
         """
         Call's Trader's init and sets custom parameters.
-
-        :param tickers_list: list of Tickers over the same interval/period to provide to the Trader
-        :param starting_bal: dollar amount for the Trader to trade with
-        :param eps: (Optional) decimal interval at which to capture profits, 0.001 means selling more every .1% profit
-        :param stop_loss: (Optional) decimal fraction of starting_bal for max loss, .3 means max loss of 30%
         """
         super().__init__(tickers_list, starting_bal)
         date_index = self.tickers[list(self.tickers.keys())[0]].prices.index
-        print(len(date_index))
         if len(date_index) > training_days:
             self.training_date = date_index[0:training_days]
             self.trading_date = date_index[training_days:len(date_index)]
@@ -50,123 +33,103 @@ class ClaudeaTrader(Trader):
 
         else:
             raise Exception(f'the number of training days is too big for the period of time given.')
-        
-        # map from sym to (map from buyprice to quantity)
-        self.buy_points = {sym: [] for sym in self.tickers.keys()}
-        self.alpha = 0.01
+        # profit change before taking action
+        self.alpha = 0.05
+        # number of stocks being traded
+        self.n = len(self.tickers.keys())
+
+    
     def run(self):
         """
         Runs asdasdasdasd
 
         :return: None
         """
-        pass
+        # record history of stocks bought
+        buy_history = {sym: 0 for sym in self.tickers.keys()}
+
+        # proportion of balance per stock
+        balance_prop_sym = {sym: 1 / self.n for sym in self.tickers.keys()} 
+
         for date in self.trading_date:
+            # update balance proportion if necessary
+            if not all(value == 0 for value in buy_history.values()):
+                balance_prop_sym = self.adjust_balance(balance_prop_sym, buy_history, date)
+
             for sym, ticker in self.tickers.items():
+                # make prediction for each stock
                 price = ticker.prices["Close"]
                 past_price = price.loc[:date]
                 curr_price = price[date]
-                # mod = sm.tsa.statespace.SARIMAX(past_price,
-                #                 order=(1, 1, 1),
-                #                 seasonal_order=(1, 0, 1, 18),
-                #                 enforce_stationarity=False,
-                #                 enforce_invertibility=False, disp=False)
-                results = self.models[sym].fit(past_price)
-                pred = sum(results.predict(5))/5
-                # pred_ci = pred.conf_int()
-                if pred > curr_price and self.balance > curr_price:
-                    # buy
-                    num_to_buy = math.floor((self.balance) / curr_price)
-                    self.buy(sym, num_to_buy, curr_price, date)
-                    self.buy_points[sym].append(curr_price)
+                mod = sm.tsa.statespace.SARIMAX(past_price,
+                                order=self.models[sym]["pdq"],
+                                seasonal_order=self.models[sym]["PDQS"],
+                                enforce_stationarity=False,
+                                enforce_invertibility=False, disp=False)
+                results = mod.fit(disp = False)
+                pred = sum(results.forecast(5)) / 5
 
-                elif pred < curr_price and max(self.buy_points[sym], default = 0) < curr_price and self.portfolio[sym] > 0:
-                    # sell
+                # if prediction is higher and we have enough balance, then buy
+                if pred > curr_price and balance_prop_sym[sym]*self.balance > curr_price:
+                    num_to_buy = math.floor(balance_prop_sym[sym]*self.balance / curr_price)
+                    self.buy(sym, num_to_buy, curr_price, date)
+                    buy_history[sym] += curr_price*num_to_buy
+
+                # sell if prediction is lower and we are not at lost
+                elif pred < curr_price and self.portfolio[sym] > 0 and buy_history[sym] / self.portfolio[sym] < curr_price:
                     num_to_sell = self.portfolio[sym]
-                    self.sell(sym, num_to_buy, curr_price, date)
-                    self.buy_points[sym] = []
+                    self.sell(sym, num_to_sell, curr_price, date)
+                    buy_history[sym] = 0
                 
-                elif max(self.buy_points[sym], default = 0)*(1+self.alpha) < curr_price and self.portfolio[sym] > 0:
-                    num_to_sell = self.portfolio[sym]
-                    self.sell(sym, num_to_buy, curr_price, date)
-                    self.buy_points[sym] = []
+                # sell if we gain alpha
+                elif self.portfolio[sym] > 1 and (buy_history[sym] / self.portfolio[sym])*(1+self.alpha) < curr_price:
+                    num_to_sell = self.portfolio[sym] // 2
+                    self.sell(sym, num_to_sell, curr_price, date)
+                    buy_history[sym] = 0
+        return None
+
+    # give larger percentage for those who give higher profit
+    def adjust_balance(self, balance_prop_sym, buy_history, date):
+        for sym, ticker in self.tickers.items():
+            current_value = ticker.prices["Close"][date]*self.portfolio[sym]
+            if buy_history[sym]*(1.1) < current_value:
+                balance_prop_sym[sym] = min(0.1 + balance_prop_sym[sym], 1)
+            elif buy_history[sym]*(.9) > current_value:
+                balance_prop_sym[sym] = max(balance_prop_sym[sym] - 0.1, 0)
+        return balance_prop_sym
 
     def train_model(self, date, sym, ticker):
-        training_price =  ticker.prices.loc[date, "Close"]
-        model = pm.auto_arima(training_price, error_action='ignore', seasonal=True, max_p = 10, max_q = 10)
-        return model
+        # default parameters
+        best_pdq, best_PDQS = (1, 1, 1), (1, 0, 1, 18)
 
-    # def train_model(self, date, sym, ticker):
-    #     training_price =  ticker.prices.loc[date, "Close"]
-    #     # train_size = int(len(X) * 0.66)
-    #     # train, test = X[0:train_size], X[train_size:]
-    #     # history = [x for x in train]
-    #     # print(train, test, history)
-    #     return self.evaluate_models(training_price, range(0, 1), range(0, 1), range(0, 1))
-    #         # for p in range(0, 5):
-    #         #     for q in range(0, 5):
-    #         #         for d in range(0, 5):
-    #         #             mod = sm.tsa.statespace.SARIMAX(past_price,
-    #         #                     order=(p, d, q),
-    #         #                     seasonal_order=(0, 0, 0, 0),
-    #         #                     enforce_stationarity=False,
-    #         #                     enforce_invertibility=False, disp=False)
+        # better to tune with larger parameter choices but will take too long to run
+        # p = q = range(10)
+        # d = D = P = Q = range(3)
+        # S = [0, 12, 13, 14, 15, 16, 17, 18]
 
-    #         # model = pm.auto_arima(df.value, start_p=1, start_q=1,
-    #         #           test='adf',       # use adftest to find optimal 'd'
-    #         #           max_p=10, max_q=10, # maximum p and q
-    #         #           m=1,              # frequency of series
-    #         #           d=None,           # let model determine 'd'
-    #         #           seasonal=False,   # No Seasonality
-    #         #           start_P=0, 
-    #         #           D=0, 
-    #         #           trace=True,
-    #         #           error_action='ignore',  
-    #         #           suppress_warnings=True, 
-    #         #           stepwise=True)
+        # # uncomment to tune in model rather than using default parameters
+        # training_price =  ticker.prices.loc[date, "Close"]
+        # p = q = range(2)
+        # d = D = P = Q = range(2)
+        # S = [0, 5, 12, 18]
 
-    # def evaluate_arima_model(self, X, arima_order):
-    #     # prepare training dataset
-    #     print("try:", arima_order)
-    #     train_size = int(len(X) * 0.66)
-    #     train, test = X[0:train_size], X[train_size:]
-    #     history = [x for x in train]
-    #     # make predictions
-    #     predictions = list()
-    #     for t in range(len(test)):
-    #         print(t)
-    #         model = sm.tsa.statespace.SARIMAX(history,
-    #                             order=arima_order,
-    #                             seasonal_order=(0,0,0,0),
-    #                             enforce_stationarity=False,
-    #                             enforce_invertibility=False, disp=False)
-    #         print(model)
-    #         model_fit = model.fit(disp = False)
-    #         print(model_fit)
-    #         yhat = model_fit.forecast(1).values[0]
-    #         print(yhat)
-    #         predictions.append(yhat)
-    #         history.append(test[t])
-    #     # calculate out of sample error
-    #     rmse = math.sqrt(mean_squared_error(test, predictions))
-    #     print("rmse", rmse)
-    #     return rmse
+        # pdq = list(product(p, d, q))
+        # PDQS = list(product(P,D,Q,S))
+        # min_ic = float("inf")
+        # best_pdq, best_PDQS = None, None
+        # for comb in pdq:
+        #     for COMBS in PDQS:
+        #         try:
+        #             model = sm.tsa.statespace.SARIMAX(training_price, order=comb,
+        #             seasonal_order=COMBS,
+        #             enforce_stationarity=False,
+        #             enforce_invertibility=False, disp=False)
+        #             res = model.fit(disp = False)
+        #             ic = res.aic + res.bic + res.aicc
+        #             if ic < min_ic:
+        #                 best_pdq, best_PDQS = comb, COMBS
+        #         except:
+        #             continue
+        # print(sym, " ARIMA:", best_pdq, best_PDQS)
 
-    #     # evaluate combinations of p, d and q values for an ARIMA model
-    # def evaluate_models(self, dataset, p_values, d_values, q_values):
-    #     dataset = dataset.astype('float32')
-    #     best_score, best_cfg = float("inf"), None
-    #     for p in p_values:
-    #         for d in d_values:
-    #             for q in q_values:
-    #                 order = (p,d,q)
-    #                 try:
-    #                     rmse = self.evaluate_arima_model(dataset, order)
-    #                     if rmse < best_score:
-    #                         best_score, best_cfg = rmse, order
-    #                     print('ARIMA%s RMSE=%.3f' % (order,rmse))
-    #                 except:
-    #                     continue
-    #     print('Best ARIMA%s RMSE=%.3f' % (best_cfg, best_score))
-    #     return best_cfg
-        return None
+        return {"pdq": best_pdq, "PDQS": best_PDQS}

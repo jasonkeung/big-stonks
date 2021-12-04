@@ -19,7 +19,7 @@ class Backtest(unittest.TestCase):
     def testClaudeaTrader(self):
         from claudeatrader import ClaudeaTrader
         tickers = Ticker.get_tickers(
-            ['GE', 'AMD', 'TSLA', 'BA'], interval='1d', period='9mo')
+            ['MSFT', 'BA', 'AMD', 'TSLA'], interval='1d', period='10mo')
 
         claudeatrader = ClaudeaTrader(tickers, 10000, training_days = 180)
         claudeatrader.run()
