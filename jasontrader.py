@@ -1,5 +1,3 @@
-import math
-
 from trader import Trader
 
 
@@ -74,21 +72,34 @@ class JasonTrader(Trader):
         num_to_buy = 0
         num_to_sell = 0
 
-        # buy more if 30 moving average is greater than 2% over the 180 moving average
-        if ticker.prices["mva30"][date] > ticker.prices["mva180"][date] * 1.02:
+        mva30_today = ticker.prices["mva30"][date]
+        mva180_today = ticker.prices["mva180"][date]
+        mva30_yest = ticker.prices.loc[ticker.prices.index < date]["mva30"]
+        mva180_yest = ticker.prices.loc[ticker.prices.index < date]["mva180"]
+
+        if not mva180_yest.any():
+            return 
+        mva30_yest = mva30_yest.iloc[-1]
+        mva180_yest = mva180_yest.iloc[-1]
+
+        # if fastline rises over slowline today
+        if mva30_today > mva180_today and mva30_yest <= mva180_yest:
+            print('buy')
             bal_to_spend = self.balance / len(self.tickers) / 2
 
             # Only buy if the amount to spend is significant
             if bal_to_spend > (self.starting_bal - self.bal_saved) * .05:
                 num_to_buy +=  bal_to_spend / curr_price
-        
-        # sell all holdings if 30 moving average is less than 2% under the 180 moving average
-        if ticker.prices["mva30"][date] < ticker.prices["mva180"][date] * .98:
+
+        # if fastline drops below slowline today
+        elif mva30_today < mva180_today and mva30_yest >= mva180_yest:
+            print('sell')
             # Absolutely set num_to_sell as the holdings
             num_to_sell = self.portfolio[sym]
-        
+            
         # compare buys and sells to make the net order
         num_change = num_to_buy - num_to_sell
+        print(num_change if num_change else None)
         if num_change > 0:
             self.buy(sym, num_change, curr_price, date)
             self.init_buy_points[sym][curr_price] = num_to_buy
