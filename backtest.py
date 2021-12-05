@@ -4,7 +4,6 @@ from ticker import Ticker
 
 
 class Backtest(unittest.TestCase):
-
     @unittest.skip # uncomment this to skip
     def testJasonTrader(self):
         from jasontrader import JasonTrader
@@ -16,17 +15,18 @@ class Backtest(unittest.TestCase):
 
         jasontrader.print_ending_info()
 
-    @unittest.skip  # uncomment this to skip 
+    # @unittest.skip  # uncomment this to skip
     def testClaudeaTrader(self):
         from claudeatrader import ClaudeaTrader
-        ticker_msft = Ticker('MSFT', '1d', '1y')
+        tickers = Ticker.get_tickers(
+            ['MSFT', 'BA', 'AMD', 'TSLA'], interval='1d', period='10mo')
 
-        claudeatrader = ClaudeaTrader([ticker_msft], 10000)
+        claudeatrader = ClaudeaTrader(tickers, 10000, training_days = 180)
         claudeatrader.run()
 
         claudeatrader.print_ending_info()
 
-    # @unittest.skip # uncomment this to skip
+    @unittest.skip # uncomment this to skip
     def testJamesTrader(self):
         from jamesstreet import JamesTrader
         tickers = Ticker.get_tickers(
@@ -37,6 +37,18 @@ class Backtest(unittest.TestCase):
 
         jamestrader.print_ending_info()
         jamestrader.plot_trades()
+
+    @unittest.skip  # uncomment this to skip
+    def testKartikiTrader(self):
+        from kartikitrader import KartikiTrader
+        tickers = Ticker.get_tickers(
+            ['JNJ', 'PG', 'SPY', 'DX-Y.NYB'], interval='1d', period='2y')
+
+        ktrader = KartikiTrader(tickers, 10000)
+        ktrader.run()
+
+        ktrader.print_ending_info()
+        ktrader.plot_trades()
 
 if __name__ == '__main__':
     unittest.main()
