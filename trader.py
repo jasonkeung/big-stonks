@@ -2,6 +2,7 @@ import math
 from datetime import datetime
 import pytz
 import plotly.graph_objects as go
+import plotly.express as px
 
 from ticker import Ticker
 from order import Order
@@ -174,21 +175,31 @@ class Trader:
 
         return round(portfolio_val, 3)
 
-    def plot_trades(self):
+    def plot_trades(self, extra_plots=[]):
         """
-        Plots the ticker price history and orders made with gains for each ticker.
+        Plots the ticker price history, orders made, and extra_plots with gains for each ticker.
+
+        :param extra_plots: list of string column names in self.prices to plot as well
 
         :return: None
         """
         
         for sym, ticker in self.tickers.items():
             prices = ticker.prices
+            # candlestick graph over entire date range of prices
             fig = go.Figure(data=[go.Candlestick(x=prices.index,
                             open=prices['Open'],
                             high=prices['High'],
                             low=prices['Low'],
                             close=prices['Close'])])
+            
+            # add extra plots as line plots
+            for col_name in extra_plots:
+                fig.add_trace(go.Scatter(x=prices.index, y=prices[col_name],
+                    mode='lines',
+                    name=col_name))
 
+            # calculate ticker gains
             ticker_orders = [order for order in self.orders if order.ticker_symbol == sym]
             if ticker_orders:
                 ticker_value_bought = sum([order.price * order.quantity for order in ticker_orders if order.order_type == 'B'])
@@ -200,6 +211,7 @@ class Trader:
                 ticker_gains = '+$' + str(round(ticker_gains, 2)) if ticker_gains > 0 else '-$' + str(-1 * round(ticker_gains, 2))
                 ticker_gains_percent = '+' + str(round(ticker_gains_percent, 2)) + '%' if ticker_gains_percent > 0 else str(round(ticker_gains_percent, 2)) + '%'
 
+                # append ticker gains to title
                 fig.update_layout(
                     title=f'{type(self).__name__} {sym} Trades ({ticker_gains}, {ticker_gains_percent})',
                     yaxis_title='USD',
