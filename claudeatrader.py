@@ -82,10 +82,10 @@ class ClaudeaTrader(Trader):
                     buy_history[sym] = 0
                 
                 # sell if we gain alpha
-                elif self.portfolio[sym] > 1 and (buy_history[sym] / self.portfolio[sym])*(1+self.alpha) < curr_price:
-                    num_to_sell = self.portfolio[sym] // 2
-                    self.sell(sym, num_to_sell, curr_price, date)
-                    buy_history[sym] = 0
+                # elif self.portfolio[sym] > 1 and (buy_history[sym] / self.portfolio[sym])*(1+self.alpha) < curr_price:
+                #     num_to_sell = self.portfolio[sym] // 2
+                #     self.sell(sym, num_to_sell, curr_price, date)
+                #     buy_history[sym] = 0
         return None
 
     # give larger percentage for those who give higher profit
