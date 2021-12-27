@@ -25,6 +25,7 @@ class Backtest(unittest.TestCase):
         claudeatrader.run()
 
         claudeatrader.print_ending_info()
+        claudeatrader.plot_trades()
 
     @unittest.skip # uncomment this to skip
     def testJamesTrader(self):
