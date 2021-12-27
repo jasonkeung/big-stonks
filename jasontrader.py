@@ -84,7 +84,6 @@ class JasonTrader(Trader):
 
         # if fastline rises over slowline today
         if mva30_today > mva180_today and mva30_yest <= mva180_yest:
-            print('buy')
             bal_to_spend = self.balance / len(self.tickers) / 2
 
             # Only buy if the amount to spend is significant
@@ -93,13 +92,11 @@ class JasonTrader(Trader):
 
         # if fastline drops below slowline today
         elif mva30_today < mva180_today and mva30_yest >= mva180_yest:
-            print('sell')
             # Absolutely set num_to_sell as the holdings
             num_to_sell = self.portfolio[sym]
             
         # compare buys and sells to make the net order
         num_change = num_to_buy - num_to_sell
-        print(num_change if num_change else None)
         if num_change > 0:
             self.buy(sym, num_change, curr_price, date)
             self.init_buy_points[sym][curr_price] = num_to_buy
