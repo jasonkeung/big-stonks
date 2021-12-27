@@ -19,6 +19,6 @@ class Order:
 
     def __str__(self):
         if self.order_type == 'B':
-            return f'{self.ticker_symbol}: bought {self.quantity} shares @ ${round(self.price, 3)} on {self.order_time}'
+            return f'{self.ticker_symbol}: bought {round(self.quantity, 3)} shares @ ${round(self.price, 3)} on {self.order_time}'
         elif self.order_type == 'S':
-            return f'{self.ticker_symbol}: sold {self.quantity} shares @ ${round(self.price, 3)} on {self.order_time}'
+            return f'{self.ticker_symbol}: sold {round(self.quantity, 3)} shares @ ${round(self.price, 3)} on {self.order_time}'
