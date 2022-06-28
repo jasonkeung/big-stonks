@@ -1,6 +1,5 @@
-import math
-
 from trader import Trader
+
 
 class JasonTrader(Trader):
     """
@@ -20,37 +19,59 @@ class JasonTrader(Trader):
 
         :param tickers_list: list of Tickers over the same interval/period to provide to the Trader
         :param starting_bal: dollar amount for the Trader to trade with
+<<<<<<< HEAD
         :param eps: (Optional) parameter for the minimum percent gain for the Trader to sell
         :param stop_loss: (Optional) the maximum fraction of starting_bal the Trader will lose, i.e. JasonTrader will lose, at max, stop_loss of starting_bal
+=======
+        :param eps: (Optional) decimal interval at which to capture profits, 0.001 means selling more every .1% profit
+        :param stop_loss: (Optional) decimal fraction of starting_bal for max loss, .3 means max loss of 30%
+>>>>>>> 26b0c197a2e4cf7d90dad3ddfe9654e38b88d8db
         """
         super().__init__(tickers_list, starting_bal)
         self.eps = eps
         self.bal_saved = self.balance * (1 - stop_loss)
-        self.balance -= self.bal_saved # set aside money so we only use self.balance * stop_loss to trade
+        # set aside money so we only use self.balance * stop_loss to trade
+        self.balance -= self.bal_saved
 
         # map from sym to (map from buyprice to quantity)
         self.init_buy_points = {sym: {} for sym in self.tickers.keys()}
         self.curr_buy_points = {sym: {} for sym in self.tickers.keys()}
 
-
     def run(self):
         """
-        Runs JasonTrader over the time range of self.tickers
+        Runs trades for each day and ticker over the time range of self.tickers
 
         :return: None
         """
-        date_index = self.tickers[list(self.tickers.keys())[0]].prices.index # gets the prices index from a random ticker in self.tickers
+        # Get the prices index from a random ticker in self.tickers
+        date_index = self.tickers[list(self.tickers.keys())[0]].prices.index
 
+        # Add moving average columns to each ticker prices DataFrame
+        for sym, ticker in self.tickers.items():
+            ticker.prices["mva30"] = ticker.get_mva(30)
+            ticker.prices["mva180"] = ticker.get_mva(180)
+
+        # Make a trade for each ticker for each date in chron. order
         for date in date_index:
             for sym, ticker in self.tickers.items():
                 self.trade(sym, ticker, date)
 
-        self.balance += self.bal_saved # add back bal_saved that was set aside
-    
+        # Add back bal_saved that was set aside
+        self.balance += self.bal_saved
+
     def trade(self, sym, ticker, date):
+        """
+        Makes a single trade call given a symbol, Ticker object, and date.
+        Looks at past/current buy positions and sells them for a profit at each self.eps interval
+
+        :param sym: String ticker symbol to trade
+        :param ticker: Ticker object to trade
+        :param date: datetime object to trade at
+
+        :return: None
+        """
         init_buys = self.init_buy_points[sym]
         curr_buys = self.curr_buy_points[sym]
-
         curr_price = ticker.prices["Close"][date]
         
         # if no positions, buy using self.balance / len(self.tickers) / 2
@@ -77,6 +98,13 @@ class JasonTrader(Trader):
             # buy if 30 mva > 180 mva
             
 
+        num_to_buy = 0
+        num_to_sell = 0
+
+        mva30_today = ticker.prices["mva30"][date]
+        mva180_today = ticker.prices["mva180"][date]
+        mva30_yest = ticker.prices.loc[ticker.prices.index < date]["mva30"]
+        mva180_yest = ticker.prices.loc[ticker.prices.index < date]["mva180"]
 
             # compare buys and sells to make the net order
             num_change = num_to_buy - num_to_sell
@@ -86,3 +114,29 @@ class JasonTrader(Trader):
                 self.curr_buy_points[sym][curr_price] = num_change
             elif num_change < 0:
                 self.sell(sym, -num_change, curr_price, date)
+        if not mva180_yest.any():
+            return 
+        mva30_yest = mva30_yest.iloc[-1]
+        mva180_yest = mva180_yest.iloc[-1]
+
+        # if fastline rises over slowline today
+        if mva30_today > mva180_today and mva30_yest <= mva180_yest:
+            bal_to_spend = self.balance / len(self.tickers) / 2
+
+            # Only buy if the amount to spend is significant
+            if bal_to_spend > (self.starting_bal - self.bal_saved) * .05:
+                num_to_buy +=  bal_to_spend / curr_price
+
+        # if fastline drops below slowline today
+        elif mva30_today < mva180_today and mva30_yest >= mva180_yest:
+            # Absolutely set num_to_sell as the holdings
+            num_to_sell = self.portfolio[sym]
+            
+        # compare buys and sells to make the net order
+        num_change = num_to_buy - num_to_sell
+        if num_change > 0:
+            self.buy(sym, num_change, curr_price, date)
+            self.init_buy_points[sym][curr_price] = num_to_buy
+            self.curr_buy_points[sym][curr_price] = num_to_buy
+        elif num_change < 0:
+            self.sell(sym, -num_change, curr_price, date)
