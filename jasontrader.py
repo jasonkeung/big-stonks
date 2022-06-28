@@ -18,8 +18,10 @@ class JasonTrader(Trader):
         """
         Call's Trader's init and sets custom parameters.
 
-        :param eps: (Optional) 
+        :param tickers_list: list of Tickers over the same interval/period to provide to the Trader
         :param starting_bal: dollar amount for the Trader to trade with
+        :param eps: (Optional) parameter for the minimum percent gain for the Trader to sell
+        :param stop_loss: (Optional) the maximum fraction of starting_bal the Trader will lose, i.e. JasonTrader will lose, at max, stop_loss of starting_bal
         """
         super().__init__(tickers_list, starting_bal)
         self.eps = eps
@@ -66,9 +68,9 @@ class JasonTrader(Trader):
                 init_quantity = init_buys[buy_price]
                 price_change = (curr_price - buy_price) / buy_price
                 if price_change > self.eps:
-                    # sell a fraction of initial buy quantity, min 1/32 or the rest of it
+                    # sell a fraction of initial buy quantity, min 1/64 or the rest of it
                     fraction_to_sell = init_quantity / (2 ** (math.floor(price_change / self.eps)))
-                    num_to_sell += min(curr_quantity, max(fraction_to_sell, init_quantity / 32))
+                    num_to_sell += min(curr_quantity, max(fraction_to_sell, init_quantity / 64))
                     self.curr_buy_points[sym][buy_price] -= num_to_sell
             
             
@@ -80,7 +82,7 @@ class JasonTrader(Trader):
             num_change = num_to_buy - num_to_sell
             if num_change > 0:
                 self.buy(sym, num_change, curr_price, date)
-                self.init_buy_points[sym][curr_price] = num_to_buy
-                self.curr_buy_points[sym][curr_price] = num_to_buy
+                self.init_buy_points[sym][curr_price] = num_change
+                self.curr_buy_points[sym][curr_price] = num_change
             elif num_change < 0:
                 self.sell(sym, -num_change, curr_price, date)

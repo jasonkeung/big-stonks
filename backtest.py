@@ -1,7 +1,6 @@
 import unittest
 
 from ticker import Ticker
-import warnings
 
 
 class Backtest(unittest.TestCase):
@@ -9,11 +8,23 @@ class Backtest(unittest.TestCase):
     # @unittest.skip # uncomment this to skip
     def testJasonTrader(self):
         from jasontrader import JasonTrader
-        tickers = Ticker.get_tickers(['GE', 'AMD', 'F', 'MSFT'], interval='15m', period='1mo')
+        tickers = Ticker.get_tickers(['MSFT'], interval='1d', period='3y')
 
-        jasontrader = JasonTrader(tickers, 10000, eps=0.015, stop_loss=.5)
+        # best_e = -1
+        # best_alpha = -100
+        # for i in range(10):
+        #     e = (i + 1) * .01
+        #     jasontrader = JasonTrader(tickers, 10000, eps=e, stop_loss=1)
+        #     jasontrader.run()
+
+        #     temp_alpha = jasontrader.get_alpha()
+        #     if temp_alpha > best_alpha:
+        #         best_alpha = temp_alpha
+        #         best_e = e
+
+        jasontrader = JasonTrader(tickers, 10000, eps=.06, stop_loss=1)
         jasontrader.run()
-        
+
         jasontrader.print_ending_info()
 
     @unittest.skip # uncomment this to skip
