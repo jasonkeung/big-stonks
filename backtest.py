@@ -4,7 +4,7 @@ from ticker import Ticker
 
 
 class Backtest(unittest.TestCase):
-    @unittest.skip # uncomment this to skip
+    # @unittest.skip # uncomment this to skip
     def testJasonTrader(self):
         from jasontrader import JasonTrader
         tickers = Ticker.get_tickers(
@@ -15,7 +15,7 @@ class Backtest(unittest.TestCase):
 
         jasontrader.print_ending_info()
 
-    # @unittest.skip  # uncomment this to skip
+    @unittest.skip  # uncomment this to skip
     def testClaudeaTrader(self):
         from claudeatrader import ClaudeaTrader
         tickers = Ticker.get_tickers(

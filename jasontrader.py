@@ -1,3 +1,4 @@
+import math
 from trader import Trader
 
 
@@ -19,13 +20,8 @@ class JasonTrader(Trader):
 
         :param tickers_list: list of Tickers over the same interval/period to provide to the Trader
         :param starting_bal: dollar amount for the Trader to trade with
-<<<<<<< HEAD
-        :param eps: (Optional) parameter for the minimum percent gain for the Trader to sell
-        :param stop_loss: (Optional) the maximum fraction of starting_bal the Trader will lose, i.e. JasonTrader will lose, at max, stop_loss of starting_bal
-=======
         :param eps: (Optional) decimal interval at which to capture profits, 0.001 means selling more every .1% profit
         :param stop_loss: (Optional) decimal fraction of starting_bal for max loss, .3 means max loss of 30%
->>>>>>> 26b0c197a2e4cf7d90dad3ddfe9654e38b88d8db
         """
         super().__init__(tickers_list, starting_bal)
         self.eps = eps
@@ -106,14 +102,14 @@ class JasonTrader(Trader):
         mva30_yest = ticker.prices.loc[ticker.prices.index < date]["mva30"]
         mva180_yest = ticker.prices.loc[ticker.prices.index < date]["mva180"]
 
-            # compare buys and sells to make the net order
-            num_change = num_to_buy - num_to_sell
-            if num_change > 0:
-                self.buy(sym, num_change, curr_price, date)
-                self.init_buy_points[sym][curr_price] = num_change
-                self.curr_buy_points[sym][curr_price] = num_change
-            elif num_change < 0:
-                self.sell(sym, -num_change, curr_price, date)
+        # compare buys and sells to make the net order
+        num_change = num_to_buy - num_to_sell
+        if num_change > 0:
+            self.buy(sym, num_change, curr_price, date)
+            self.init_buy_points[sym][curr_price] = num_change
+            self.curr_buy_points[sym][curr_price] = num_change
+        elif num_change < 0:
+            self.sell(sym, -num_change, curr_price, date)
         if not mva180_yest.any():
             return 
         mva30_yest = mva30_yest.iloc[-1]
